@@ -6,12 +6,14 @@ MAX_NUMBER_MOLECULES = 100
 T = 1300
 number_clusters_start = 1
 dt = 1e-8/phys.jump_rate(T)
-time_steps = 1000
+dt = dt * 1e6
+time_steps = int(1e5)
  
 class ClusterSimulation:
-    def __init__(self,temperature):
+    def __init__(self,temperature, time_steps):
         self.cluster_dict = {}
         self.temperature = temperature
+        self.time_steps = time_steps
         for nof_molecules in range(MAX_NUMBER_MOLECULES):
             if(nof_molecules == 1) : start = number_clusters_start
             else : start = 0
@@ -40,7 +42,7 @@ class ClusterSimulation:
     
     def simulate(self):
         accumulated_time = 0.0
-        for time in range(time_steps):
+        for time in range(self.time_steps):
             self.update_all_clusters()
             accumulated_time += dt
         print 'accumulated_time', accumulated_time
@@ -55,12 +57,21 @@ class ClusterSimulation:
     def number_clusters_as_array(self):
         return [ self.cluster_dict[key].get_number_of_clusters() for key in self.cluster_dict.keys() ]
 
+#time_step_array = [int(1e5), int(2e5), int(3e5), int(4e5), int(5e5)]
+time_step_array = [int(1e2), int(1e3), int(1e4), int(1e5)]
 
-sim = ClusterSimulation(T)
-sim.simulate()
-x = sim.number_molecules_as_array()
-y = sim.number_clusters_as_array()
-pylab.loglog(x,y)
+x_array = []
+y_array = []
+for ts in time_step_array:
+    sim = ClusterSimulation(T, ts)
+    sim.simulate()
+    x = sim.number_molecules_as_array()
+    y = sim.number_clusters_as_array()
+    x_array.append(x)
+    y_array.append(y)
+    
+for x, y in zip(x_array, y_array):    
+    pylab.semilogy(x,y)
 pylab.show()
 
 
